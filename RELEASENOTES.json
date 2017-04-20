@@ -1,26 +1,40 @@
 {
-  "5.7.2": {
-    "🥚 features": [
-      "Adds custom branded title bar (macOS)",
-      "Adjusts title bar size (macOS)"
+  "5.9.1": {
+    "🚨 bugfixes": [
+      "Addresses legacy configuration descriptors"
     ],
-    "🐇 bugfixes": [
-      "Fixes missing icons & symbols regression"
+    "👷 internals": [
+      "Upgrades Electron to v1.6.7",
+      "Upgrades `utils`",
+      "Upgrades dependencies"
+    ]
+  },
+  "5.8.1": {
+    "🐰 features": [
+      "Adds updated system tray icons (Linux)",
+      "Adds custom branded title bar (macOS)",
+      "Optimizes title bar size (macOS)",
+      "Optimizes external url presentation"
+    ],
+    "🐰 bugfixes": [
+      "Fixes interface redraws on window resize",
+      "Fixes missing icons symbols"
     ],
     "🐰 internals": [
-      "Adds runtime file-based CSS injection module",
+      "Adds system tray icon sources",
+      "Adds runtime CSS injection module",
       "Upgrades cross-platform build & deployment system"
     ]
   },
   "5.6.1": {
-    "🥚 features 🐇🐇🐇": [
+    "🐰 features": [
       "Adds platform-specific native system fonts",
       "Reduced webview repaints on resize"
     ],
-    "🥚 bugfixes 🐰🐰🐰": [
+    "🐰 bugfixes": [
       "Improves UI responsiveness"
     ],
-    "🥚 internals 🎉🎉🎉": [
+    "🐰 internals": [
       "Upgrades live reload infrastructure",
       "Upgrades dependencies"
     ]

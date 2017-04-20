@@ -6,10 +6,8 @@
  * Node
  * @constant
  */
-const fs = require('fs');
 const path = require('path');
 const url = require('url');
-const util = require('util');
 
 /**
  * Modules
@@ -44,11 +42,11 @@ const logger = require(path.join(appRootPath, 'lib', 'logger'))({ write: true })
 const body = document.querySelector('body');
 const webview = document.getElementById('webview');
 const spinner = document.getElementById('spinner');
-const status = document.getElementById('spinner__text');
-const controls = document.getElementById('controls');
+const statustext = document.getElementById('spinner__text');
+const controlsExtra = document.getElementById('controls-extra');
 const buttons = {
     home: {
-        target: document.querySelector('.controls__button.home'),
+        target: document.querySelector('.controls-extra__button.home'),
         event() { webview.goBack(); }
     }
 };
@@ -146,9 +144,17 @@ webview.addEventListener('did-navigate-in-page', (ev) => {
 webview.addEventListener('new-window', (ev) => {
     logger.debug('webview#new-window');
 
-    let protocol = url.parse(ev.url).protocol;
+    ev.preventDefault();
 
-    if (protocol === 'http:' || protocol === 'https:') {
+    let domain = parseDomain(ev.url)['domain'] || '';
+
+    if (domain === 'pushbullet') {
+        // Internal Link
+        logger.info('webview#new-window', 'opening internal url:', ev.url);
+        webview.loadURL(ev.url);
+    } else {
+        // External Link
+        logger.info('webview#new-window', 'opening external url:', ev.url);
         remote.shell.openExternal(ev.url);
     }
 });
@@ -170,16 +176,16 @@ webview.addEventListener('load-commit', (ev) => {
         case 'google':
         case 'youtube':
         case 'facebook':
-            domHelper.setVisibility(controls, true);
+            domHelper.setVisibility(controlsExtra, true);
 
             body.style.backgroundColor = 'rgb(236, 240, 240)';
             break;
         case 'pushbullet':
             // Pushbullet 'help'
             if (subdomain.includes('help')) {
-                domHelper.setVisibility(controls, true);
+                domHelper.setVisibility(controlsExtra, true);
             } else {
-                domHelper.setVisibility(controls, false);
+                domHelper.setVisibility(controlsExtra, false);
             }
 
             // Pushbullet 'signin'
@@ -198,12 +204,12 @@ webview.addEventListener('load-commit', (ev) => {
 });
 
 /**
+ * CSS Injection
  * @listens webview#load-commit
  */
-webview.addEventListener('load-commit', (ev) => {
+webview.addEventListener('load-commit', () => {
     logger.debug('webview#load-commit');
 
-    // CSS Injection
     domHelper.injectCSS(webview, path.join(appRootPath, 'app', 'styles', 'pushbullet.css'));
 });
 
@@ -245,23 +251,25 @@ webview.addEventListener('ipc-message', (ev) => {
         case 'account':
             switch (message) {
                 case 'login':
-                logger.info('account', 'login');
-                domHelper.setText(status, 'logged in');
+                    logger.info('account', 'login');
+                    domHelper.setText(statustext, 'logged in');
+                    break;
             }
+            break;
         case 'network':
             const didDisconnect = ev.args[1];
             switch (message) {
                 case 'offline':
                     logger.info('network', 'offline');
                     presentSpinner();
-                    domHelper.setText(status, 'connecting...');
+                    domHelper.setText(statustext, 'connecting...');
                     break;
                 case 'online':
                     logger.info('network', 'online');
-                    domHelper.setText(status, 'connected');
+                    domHelper.setText(statustext, 'connected');
                     if (Boolean(didDisconnect)) {
                         logger.info('network', 'reconnecting...');
-                        domHelper.setText(status, 'reconnecting');
+                        domHelper.setText(statustext, 'reconnecting');
                         webview.reloadIgnoringCache();
                     }
                     dismissSpinner();

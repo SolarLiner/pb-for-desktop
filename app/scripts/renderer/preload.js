@@ -79,32 +79,19 @@ let appIsTargeted = (targetIden) => {
  * User Interface tweaks
  */
 let addInterfaceEnhancements = () => {
-    logger.debug('addUiTweaks');
+    logger.debug('addInterfaceEnhancements');
 
     const pb = window.pb;
 
     let interval = setInterval(() => {
         if (!(pb && pb.api && pb.api.account)) { return; }
 
-        // Hide wizard
+        // Close Setup Wizard
         pb.api.account['preferences']['setup_done'] = true;
         pb.sidebar.update();
 
-        // Header: remove shadow
-        let header = document.getElementById('mobile-header') || document.getElementById('header');
-        header.style.boxShadow = 'none';
-
-        // Sink: transparent background
-        let sink = document.getElementById('sink');
-        sink.style.backgroundColor = 'transparent';
-
-        // Dark areas: transparent background
-        let divList = document.querySelectorAll('div');
-        divList.forEach((el) => {
-            if (el.style.backgroundColor === 'rgb(149, 165, 166)') {
-                el.style.backgroundColor = 'transparent';
-            }
-        });
+        // Go to Settings
+        window.onecup['goto']('/#settings');
 
         clearInterval(interval);
     }, defaultInterval);
@@ -123,7 +110,7 @@ let registerErrorProxy = () => {
 
         pb.error = new Proxy(pb.error, {
             set: (pbError, property, value) => {
-                //logger.debug('pb.error', 'set', 'property:', property, ' value:',  value);
+                //logger.debug('pb.error', 'set()', 'property:', property, 'value:', value);
 
                 if (property === 'title' && _.isString(value)) {
                     if (value.includes('Network')) {
@@ -156,7 +143,7 @@ let registerTextsProxy = () => {
 
         pb.api.texts.objs = new Proxy(pb.api.texts.objs, {
             set: (textsObjs, property, value) => {
-                logger.debug('pb.api.texts.objs', 'set', 'property:', property, ' value:',  value);
+                logger.debug('pb.api.texts.objs', 'set()', 'property:', property, 'value:', value);
 
                 // Check if text with iden exists
                 let exists = Boolean(pb.api.texts.all.filter((text) => {
@@ -199,7 +186,7 @@ let registerPushProxy = () => {
 
         pb.api.pushes.objs = new Proxy(pb.api.pushes.objs, {
             set: (pushesObjs, property, value) => {
-                //logger.debug('pb.api.pushes.objs', 'set', 'property:', property, ' value:',  value);
+                //logger.debug('pb.api.pushes.objs', 'set()', 'property:', property, 'value:', value);
 
                 // Check if push with iden exists
                 let exists = Boolean(pb.api.pushes.all.filter((push) => {
@@ -291,17 +278,6 @@ let addWebsocketEventHandlers = () => {
 };
 
 /**
- * @listens window:Event#resize
- */
-// Keep Pushbullet from resetting UI on resize
-window.removeEventListener('resize');
-window.addEventListener('resize', () => {
-    logger.debug('window#resize');
-
-    addInterfaceEnhancements();
-});
-
-/**
  * Login Pushbullet User
  */
 let loginPushbulletUser = () => {
@@ -319,7 +295,6 @@ let loginPushbulletUser = () => {
         registerPushProxy();
         registerTextsProxy();
         addWebsocketEventHandlers();
-        addInterfaceEnhancements();
 
         let lastNotification = configurationManager('lastNotification').get();
         if (lastNotification) {
@@ -340,7 +315,8 @@ let loginPushbulletUser = () => {
 
         ipcRenderer.send('account', 'login');
         ipcRenderer.sendToHost('account', 'login');
-        window.onecup['goto']('/#settings');
+
+        addInterfaceEnhancements();
 
         clearInterval(interval);
     }, defaultInterval);
@@ -423,5 +399,8 @@ window.addEventListener('online', () => {
 window.addEventListener('load', () => {
     logger.debug('window#load');
 
+    domHelper.addPlatformClass();
+
     init();
 });
+
